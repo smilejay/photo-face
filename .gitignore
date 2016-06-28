@@ -11,4 +11,5 @@
 *.pid
 *.json
 *.sqlite3
+*.jpg
 celerybeat-schedule
