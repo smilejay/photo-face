@@ -44,6 +44,8 @@ def detect_face(request):
                                     'status': 1}, status=200)
             else:
                 return JSONResponse({'url': face_file, 'status': 0}, status=200)
+        else:
+            return JSONResponse(data=form.errors, status=200)
     else:
         return JSONResponse({'error': 'It only support HTTP POST method.'},
-            status=200)
+                            status=200)
