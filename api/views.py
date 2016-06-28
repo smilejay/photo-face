@@ -1,9 +1,14 @@
 # -*- coding: utf-8 -*-
+from datetime import datetime
+import random
 from django.views.decorators.csrf import csrf_exempt
-from rest_framework.request import Request
 from lib.response import JSONResponse
 from lib.utility import save_file
+from face import face
 from .forms import UploadFileForm
+
+orig_dir = 'img_orig'
+face_dir = 'static/img_face'
 
 
 @csrf_exempt
@@ -17,18 +22,28 @@ def upload(request):
         else:
             return JSONResponse(data=form.errors, status=200)
     else:
-        return JSONResponse({'error': 'It only support HTTP GET method.'},
+        return JSONResponse({'error': 'It only support HTTP POST method.'},
             status=200)
 
 
 @csrf_exempt
 def detect_face(request):
-    '''
-    @summary: get songs by category id.
-    '''
-    if request.method == 'GET':
-        req = Request(request)
-        return JSONResponse(data='ok', status=200)
+    ''' upload a photo and extract the 1st face in the photo '''
+    if request.method == 'POST':
+        form = UploadFileForm(request.POST, request.FILES)
+        if form.is_valid():
+            r_num = int(10**8 * random.random())
+            orig_filename = '%d.jpg' % r_num
+            face_filename = '%d_face.jpg' % r_num
+            date_dir = datetime.now().strftime('%Y/%m/%d')
+            orig_file = '%s/%s/%s' % (orig_dir, date_dir, orig_filename)
+            face_file = '%s/%s/%s' % (face_dir, date_dir, face_filename)
+            save_file(request.FILES['file'], orig_file)
+            if face.extract_face(orig_file, face_file):
+                return JSONResponse({'msg': 'can not detect face in the photo',
+                                    'status': 1}, status=200)
+            else:
+                return JSONResponse({'url': face_file, 'status': 0}, status=200)
     else:
-        return JSONResponse({'error': 'It only support HTTP GET method.'},
+        return JSONResponse({'error': 'It only support HTTP POST method.'},
             status=200)
