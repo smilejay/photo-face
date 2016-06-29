@@ -3,7 +3,7 @@ from datetime import datetime
 import random
 from django.views.decorators.csrf import csrf_exempt
 from lib.response import JSONResponse
-from lib.utility import save_file
+from lib.utility import save_file, key_validation
 from face import face
 from .forms import UploadFileForm
 
@@ -16,10 +16,12 @@ out_dir = 'static/img_out'
 def upload(request):
     ''' demo for uploading a file'''
     if request.method == 'POST':
+        key = request.POST.get('key', 'aa')
+        if not key_validation(key):
+            return JSONResponse({'status': 1, 'msg': 'key error.'}, status=200)
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
-            r_num = int(10**8 * random.random())
-            out_filename = '%d_face.jpg' % r_num
+            out_filename = '%d.jpg' % int(10**8 * random.random())
             date_dir = datetime.now().strftime('%Y/%m/%d')
             out_file = '%s/%s/%s' % (out_dir, date_dir, out_filename)
             save_file(request.FILES['file'], out_file)
@@ -35,6 +37,9 @@ def upload(request):
 def detect_face(request):
     ''' upload a photo and extract the 1st face in the photo '''
     if request.method == 'POST':
+        key = request.POST.get('key', 'aa')
+        if not key_validation(key):
+            return JSONResponse({'status': 1, 'msg': 'key error.'}, status=200)
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
             r_num = int(10**8 * random.random())
