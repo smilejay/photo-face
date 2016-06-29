@@ -9,6 +9,7 @@ from .forms import UploadFileForm
 
 orig_dir = 'img_orig'
 face_dir = 'static/img_face'
+out_dir = 'static/img_out'
 
 
 @csrf_exempt
@@ -17,13 +18,17 @@ def upload(request):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
-            save_file(request.FILES['file'], 'img_orig/1.jpg')
-            return JSONResponse(data='upload ok', status=200)
+            r_num = int(10**8 * random.random())
+            out_filename = '%d_face.jpg' % r_num
+            date_dir = datetime.now().strftime('%Y/%m/%d')
+            out_file = '%s/%s/%s' % (out_dir, date_dir, out_filename)
+            save_file(request.FILES['file'], out_file)
+            return JSONResponse({'status':0, 'url': out_file}, status=200)
         else:
-            return JSONResponse(data=form.errors, status=200)
+            return JSONResponse({'status': 1, 'msg': form.errors}, status=200)
     else:
-        return JSONResponse({'error': 'It only support HTTP POST method.'},
-            status=200)
+        return JSONResponse({'msg': 'It only support HTTP POST method.',
+                             'status': 1}, status=200)
 
 
 @csrf_exempt
@@ -41,11 +46,11 @@ def detect_face(request):
             save_file(request.FILES['file'], orig_file)
             if face.extract_face(orig_file, face_file):
                 return JSONResponse({'msg': 'can not detect face in the photo',
-                                    'status': 1}, status=200)
+                                     'status': 1}, status=200)
             else:
                 return JSONResponse({'url': face_file, 'status': 0}, status=200)
         else:
-            return JSONResponse(data=form.errors, status=200)
+            return JSONResponse({'status': 1, 'msg': form.errors}, status=200)
     else:
-        return JSONResponse({'error': 'It only support HTTP POST method.'},
-                            status=200)
+        return JSONResponse({'msg': 'It only support HTTP POST method.',
+                             'status': 1}, status=200)
