@@ -1,2 +1,5 @@
-## start the server
-gunicorn photo_face.wsgi -c gunicorn.cfg
+## setup environment on CentOS 7.x
+`./setup.sh`
+
+## start/restart the server
+`./restart_server.sh`
